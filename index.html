@@ -3,33 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="
+	default-src 'self';
+	script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
+	style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+	connect-src 'self' https://*.supabase.co;
+	font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com;
+	img-src 'self' data:;
+	">
     <title>Bruno's Word Cards</title>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            /* Light mode colors - Warm Professional */
-            --bg-primary: #F9FAFB;
-            --bg-secondary: #FFFFFF;
-            --text-primary: #111827;
-            --text-secondary: #6B7280;
-            --accent-primary: #059669;
-            --accent-hover: #047857;
-            --border-color: #D1D5DB;
-            --shadow-color: rgba(0, 0, 0, 0.1);
-            --hover-bg: rgba(5, 150, 105, 0.05);
+            /* Light mode colors - Modern & Vibrant */
+            --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f8fafc;
+            --text-primary: #1a202c;
+            --text-secondary: #4a5568;
+            --text-light: #718096;
+            --accent-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --accent-hover: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+            --border-color: #e2e8f0;
+            --shadow-soft: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --shadow-medium: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --shadow-large: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            --error-color: #f56565;
+            --success-color: #48bb78;
+            --warning-color: #ed8936;
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(255, 255, 255, 0.2);
         }
 
         [data-theme="dark"] {
-            /* Dark mode colors - Slate Professional */
-            --bg-primary: #0F172A;
-            --bg-secondary: #1E293B;
-            --text-primary: #F8FAFC;
-            --text-secondary: #CBD5E1;
-            --accent-primary: #34D399;
-            --accent-hover: #10B981;
-            --border-color: #334155;
-            --shadow-color: rgba(0, 0, 0, 0.3);
-            --hover-bg: rgba(52, 211, 153, 0.1);
+            /* Dark mode colors - Sleek & Modern */
+            --bg-primary: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            --bg-secondary: #2d3748;
+            --bg-tertiary: #1a202c;
+            --text-primary: #f7fafc;
+            --text-secondary: #cbd5e1;
+            --text-light: #94a3b8;
+            --accent-primary: linear-gradient(135deg, #9f7aea 0%, #ed64a6 100%);
+            --accent-hover: linear-gradient(135deg, #8b5cf6 0%, #db2777 100%);
+            --border-color: #4a5568;
+            --shadow-soft: 0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+            --shadow-medium: 0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+            --shadow-large: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            --error-color: #fc8181;
+            --success-color: #68d391;
+            --warning-color: #f6ad55;
+            --glass-bg: rgba(45, 55, 72, 0.95);
+            --glass-border: rgba(255, 255, 255, 0.1);
         }
 
         * {
@@ -39,110 +64,336 @@
         }
 
         body {
-            font-family: 'IBM Plex Sans', sans-serif;
-            background-color: var(--bg-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
             color: var(--text-primary);
-            transition: all 0.4s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated background particles */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(120, 199, 255, 0.3) 0%, transparent 50%);
+            z-index: -1;
+            animation: backgroundShift 20s ease-in-out infinite alternate;
+        }
+
+        @keyframes backgroundShift {
+            0% { transform: translateX(-20px) translateY(-20px); }
+            100% { transform: translateX(20px) translateY(20px); }
         }
 
         .header {
-            background-color: var(--bg-secondary);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid var(--glass-border);
             padding: 1.5rem 2rem;
-            box-shadow: 0 2px 10px var(--shadow-color);
+            box-shadow: var(--shadow-soft);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
             transition: all 0.4s ease;
         }
 
         .header h1 {
-            font-size: 1.8rem;
-            font-weight: 600;
-            color: var(--text-primary);
+            font-size: 2rem;
+            font-weight: 800;
+            background: var(--accent-primary);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.025em;
         }
 
         .header-controls {
             display: flex;
             align-items: center;
+            gap: 1.5rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
             gap: 1rem;
+            padding: 0.5rem 1rem;
+            background: var(--glass-bg);
+            border-radius: 50px;
+            border: 1px solid var(--glass-border);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .logout-btn {
+            background: var(--accent-primary);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: perspective(1px) translateZ(0);
+        }
+
+        .logout-btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        /* Enhanced theme toggle */
+        .theme-toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
 
         .dark-mode-label {
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: 500;
             color: var(--text-primary);
         }
 
-        /* Modern iPhone-style toggle switch */
         .theme-toggle {
             position: relative;
-            width: 60px;
-            height: 32px;
-            background-color: var(--border-color);
-            border-radius: 16px;
+            width: 64px;
+            height: 34px;
+            background: linear-gradient(145deg, #e2e8f0, #cbd5e0);
+            border-radius: 50px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             border: none;
             outline: none;
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1), inset -2px -2px 5px rgba(255,255,255,0.8);
         }
 
         .theme-toggle::before {
-            content: '';
+            content: '☀️';
             position: absolute;
             top: 3px;
-            left: 3px;
-            width: 26px;
-            height: 26px;
-            background-color: white;
+            left: 4px;
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(145deg, #ffffff, #f1f5f9);
             border-radius: 50%;
-            transition: all 0.3s cubic-bezier(0.2, 0.85, 0.32, 1.2);
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
         }
 
         .theme-toggle.dark {
-            background-color: var(--accent-primary);
+            background: linear-gradient(145deg, #4a5568, #2d3748);
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.3), inset -2px -2px 5px rgba(255,255,255,0.1);
         }
 
         .theme-toggle.dark::before {
-            transform: translateX(28px);
-            background-color: var(--bg-secondary);
+            content: '🌙';
+            transform: translateX(30px);
+            background: linear-gradient(145deg, #2d3748, #1a202c);
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.3);
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 2rem;
         }
 
-        .home-tiles {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-
-        .tile {
-            background-color: var(--bg-secondary);
-            border-radius: 16px;
-            padding: 3rem 2rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid var(--border-color);
+        /* Modern Auth Forms */
+        .auth-container {
+            max-width: 420px;
+            margin: 4rem auto;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px) saturate(180%);
+            padding: 3rem 2.5rem;
+            border-radius: 24px;
+            box-shadow: var(--shadow-large);
+            border: 1px solid var(--glass-border);
             position: relative;
             overflow: hidden;
         }
 
-        .tile:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 30px var(--shadow-color);
-            border-color: var(--accent-primary);
+        .auth-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-primary);
+            border-radius: 24px 24px 0 0;
         }
 
-        .tile:hover::before {
-            animation: glare 0.6s ease-out;
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .auth-form h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .form-input {
+            padding: 1rem 1.25rem;
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 1rem;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: transparent;
+            background: var(--bg-secondary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1), var(--shadow-soft);
+            transform: translateY(-2px);
+        }
+
+        .form-input.error {
+            border-color: var(--error-color);
+            box-shadow: 0 0 0 3px rgba(245, 101, 101, 0.1);
+        }
+
+        .password-strength {
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            font-weight: 500;
+        }
+
+        .strength-weak { color: var(--error-color); }
+        .strength-medium { color: var(--warning-color); }
+        .strength-strong { color: var(--success-color); }
+
+        .error-message, .success-message {
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        .error-message {
+            color: var(--error-color);
+            background: rgba(245, 101, 101, 0.1);
+            border: 1px solid rgba(245, 101, 101, 0.2);
+        }
+
+        .success-message {
+            color: var(--success-color);
+            background: rgba(72, 187, 120, 0.1);
+            border: 1px solid rgba(72, 187, 120, 0.2);
+        }
+
+        .auth-switch {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        .auth-switch button {
+            background: none;
+            border: none;
+            color: transparent;
+            background: var(--accent-primary);
+            background-clip: text;
+            -webkit-background-clip: text;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .auth-switch button:hover {
+            transform: translateY(-1px);
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+            position: relative;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 24px;
+            height: 24px;
+            border: 2px solid transparent;
+            border-top: 2px solid var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Enhanced Home Tiles */
+        .home-tiles {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+            margin-top: 3rem;
+        }
+
+        .tile {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px) saturate(180%);
+            border-radius: 24px;
+            padding: 3rem 2.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--glass-border);
+            position: relative;
+            overflow: hidden;
+            transform: perspective(1px) translateZ(0);
         }
 
         .tile::before {
@@ -153,74 +404,102 @@
             width: 100%;
             height: 100%;
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.6s ease;
+            transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tile:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: var(--shadow-large);
+            border-color: transparent;
+        }
+
+        .tile:hover::before {
+            left: 100%;
         }
 
         .tile h2 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--text-primary);
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: var(--accent-primary);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             margin-bottom: 1rem;
+            letter-spacing: -0.025em;
         }
 
         .tile p {
             color: var(--text-secondary);
-            font-size: 1rem;
-            line-height: 1.5;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            font-weight: 400;
         }
 
+        /* Page Management */
         .page {
             display: none;
+            animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .page.active {
             display: block;
         }
 
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Enhanced Navigation */
         .back-nav {
             display: inline-flex;
             align-items: center;
             margin-bottom: 2rem;
             cursor: pointer;
-            background-color: var(--accent-primary);
+            background: var(--accent-primary);
             color: white;
             font-weight: 600;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
+            padding: 1rem 1.75rem;
+            border-radius: 50px;
             border: none;
-            font-family: 'IBM Plex Sans', sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 1rem;
-            transition: all 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             text-decoration: none;
             width: fit-content;
+            box-shadow: var(--shadow-soft);
         }
 
         .back-nav:hover {
-            background-color: var(--accent-hover);
-            transform: translateY(-1px);
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
         }
 
         .back-arrow {
-            margin-right: 0.5rem;
+            margin-right: 0.75rem;
             font-size: 1.2rem;
             font-weight: 700;
         }
 
+        /* Modern Deck Lists */
         .deck-list {
-            background-color: var(--bg-secondary);
-            border-radius: 12px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px) saturate(180%);
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 4px 20px var(--shadow-color);
-            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-medium);
+            border: 1px solid var(--glass-border);
         }
 
         .deck-item {
-            padding: 1.5rem;
+            padding: 2rem;
             border-bottom: 1px solid var(--border-color);
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
+            background: var(--bg-secondary);
         }
 
         .deck-item:last-child {
@@ -228,22 +507,24 @@
         }
 
         .deck-item:hover {
-            background-color: var(--hover-bg);
-            transform: translateX(4px);
-        }
-
-        .deck-item:hover::before {
-            animation: glare 0.6s ease-out;
+            background: var(--bg-tertiary);
+            transform: translateX(8px);
         }
 
         .deck-item::before {
             content: '';
             position: absolute;
+            left: 0;
             top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            bottom: 0;
+            width: 4px;
+            background: var(--accent-primary);
+            transform: scaleY(0);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .deck-item:hover::before {
+            transform: scaleY(1);
         }
 
         .deck-info {
@@ -253,69 +534,97 @@
         }
 
         .deck-details h3 {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             font-weight: 600;
             color: var(--text-primary);
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.025em;
         }
 
         .deck-meta {
             color: var(--text-secondary);
             font-size: 0.9rem;
+            line-height: 1.5;
         }
 
         .deck-actions {
             display: flex;
-            gap: 0.5rem;
+            gap: 0.75rem;
             align-items: center;
         }
 
+        /* Enhanced Buttons */
         .btn {
-            background-color: var(--accent-primary);
+            background: var(--accent-primary);
             color: white;
             border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
             cursor: pointer;
-            font-family: 'IBM Plex Sans', sans-serif;
-            font-weight: 500;
-            transition: all 0.2s ease;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-soft);
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
         }
 
         .btn:hover {
-            background-color: var(--accent-hover);
-            transform: translateY(-1px);
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
 
         .btn-danger {
-            background-color: #DC2626;
+            background: linear-gradient(135deg, #f56565, #e53e3e);
             color: white;
             border: none;
-            padding: 0.5rem;
-            border-radius: 8px;
+            padding: 0.75rem;
+            border-radius: 50%;
             cursor: pointer;
             font-weight: bold;
-            transition: all 0.2s ease;
+            font-size: 1.2rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-soft);
         }
 
         .btn-danger:hover {
-            background-color: #B91C1C;
+            background: linear-gradient(135deg, #e53e3e, #c53030);
+            transform: translateY(-2px) scale(1.1);
+            box-shadow: var(--shadow-medium);
         }
 
+        /* Enhanced Flashcards */
         .card-container {
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 60vh;
-            perspective: 1000px;
+            perspective: 1500px;
         }
 
         .flashcard {
-            width: 400px;
-            height: 300px;
+            width: 450px;
+            height: 320px;
             position: relative;
             transform-style: preserve-3d;
-            transition: transform 0.6s;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
         }
 
@@ -328,37 +637,46 @@
             width: 100%;
             height: 100%;
             backface-visibility: hidden;
-            background-color: var(--bg-secondary);
-            border: 2px solid var(--border-color);
-            border-radius: 16px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.5rem;
             font-weight: 500;
             text-align: center;
-            padding: 2rem;
-            box-shadow: 0 8px 25px var(--shadow-color);
+            padding: 2.5rem;
+            box-shadow: var(--shadow-large);
+            transition: all 0.3s ease;
+        }
+
+        .card-face:hover {
+            transform: translateZ(10px);
         }
 
         .card-back {
             transform: rotateY(180deg);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
         }
 
         .card-controls {
             display: flex;
             justify-content: center;
-            gap: 1rem;
-            margin-top: 2rem;
+            gap: 1.5rem;
+            margin-top: 3rem;
         }
 
         .card-progress {
             text-align: center;
-            margin-bottom: 1rem;
+            margin-bottom: 2rem;
             color: var(--text-secondary);
-            font-size: 1rem;
+            font-size: 1.1rem;
+            font-weight: 500;
         }
 
+        /* Enhanced Modals */
         .modal {
             display: none;
             position: fixed;
@@ -366,7 +684,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
             z-index: 1000;
             justify-content: center;
             align-items: center;
@@ -374,88 +693,143 @@
 
         .modal.active {
             display: flex;
+            animation: modalFadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
         }
 
         .modal-content {
-            background-color: var(--bg-secondary);
-            padding: 2rem;
-            border-radius: 16px;
-            box-shadow: 0 20px 50px var(--shadow-color);
-            max-width: 400px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px) saturate(180%);
+            padding: 3rem;
+            border-radius: 24px;
+            box-shadow: var(--shadow-large);
+            max-width: 450px;
             width: 90%;
             text-align: center;
+            border: 1px solid var(--glass-border);
         }
 
         .modal h3 {
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
             color: var(--text-primary);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .modal p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            line-height: 1.6;
         }
 
         .modal-actions {
             display: flex;
             gap: 1rem;
             justify-content: center;
-            margin-top: 1.5rem;
+            margin-top: 2rem;
         }
 
+        /* Enhanced Editor */
         .editor-card {
-            background-color: var(--bg-secondary);
+            background: var(--bg-secondary);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .editor-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
         }
 
         .editor-inputs {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin-bottom: 1rem;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
         }
 
         .editor-input {
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-family: 'IBM Plex Sans', sans-serif;
-            background-color: var(--bg-primary);
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-tertiary);
             color: var(--text-primary);
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .editor-input:focus {
+            outline: none;
+            border-color: transparent;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1), var(--shadow-soft);
+            transform: translateY(-2px);
         }
 
         .add-card-btn {
             width: 100%;
-            margin-bottom: 2rem;
-            padding: 1rem;
-            font-size: 1rem;
-            background-color: var(--accent-primary);
+            margin-bottom: 2.5rem;
+            padding: 1.25rem;
+            font-size: 1.1rem;
+            background: var(--accent-primary);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 16px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            box-shadow: var(--shadow-soft);
         }
 
         .add-card-btn:hover {
-            background-color: var(--accent-hover);
+            background: var(--accent-hover);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-medium);
         }
 
         .import-export-controls {
             display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
             justify-content: center;
+            flex-wrap: wrap;
         }
 
         .import-export-controls .btn {
             flex: 1;
             max-width: 200px;
+            min-width: 150px;
         }
 
-        @keyframes glare {
-            0% { left: -100%; }
-            100% { left: 100%; }
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
         }
 
+        .empty-state h3 {
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        /* Responsive Design */
         @media (max-width: 768px) {
             .container {
                 padding: 1rem;
@@ -463,39 +837,178 @@
             
             .header {
                 padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .header-controls {
+                gap: 1rem;
+            }
+            
+            .user-info {
+                font-size: 0.8rem;
             }
             
             .flashcard {
-                width: 320px;
+                width: 300px;
                 height: 240px;
+            }
+            
+            .card-face {
+                font-size: 1.2rem;
+                padding: 1.5rem;
             }
             
             .editor-inputs {
                 grid-template-columns: 1fr;
             }
+            
+            .import-export-controls {
+                flex-direction: column;
+            }
+            
+            .auth-container {
+                margin: 2rem auto;
+                padding: 2rem 1.5rem;
+            }
+            
+            .home-tiles {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .tile {
+                padding: 2rem 1.5rem;
+            }
+            
+            .deck-item {
+                padding: 1.5rem;
+            }
+            
+            .deck-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .modal-content {
+                padding: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .flashcard {
+                width: 280px;
+                height: 200px;
+            }
+            
+            .card-controls {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 200px;
+            }
+        }
+
+        /* Loading animations */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading-skeleton {
+            background: linear-gradient(90deg, var(--border-color) 25%, transparent 37%, var(--border-color) 63%);
+            background-size: 400% 100%;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-hover);
         }
     </style>
 </head>
 <body>
-            <header class="header">
+    <header class="header">
         <h1>Bruno's Word Cards</h1>
         <div class="header-controls">
-            <span class="dark-mode-label">Dark Mode</span>
-            <button class="theme-toggle" onclick="toggleTheme()"></button>
+            <div class="user-info" id="user-info" style="display: none;">
+                <span id="user-email"></span>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+            <div class="theme-toggle-container">
+                <span class="dark-mode-label">Dark Mode</span>
+                <button class="theme-toggle" onclick="toggleTheme()"></button>
+            </div>
         </div>
     </header>
 
+    <!-- Authentication Page -->
+    <div id="auth" class="page active">
+        <div class="auth-container">
+            <form class="auth-form" id="auth-form">
+                <h2 id="auth-title">Sign In</h2>
+                
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" class="form-input" required minlength="8">
+                    <div class="password-strength" id="password-strength"></div>
+                </div>
+                
+                <div class="form-group" id="confirm-password-group" style="display: none;">
+                    <label for="confirm-password">Confirm Password</label>
+                    <input type="password" id="confirm-password" class="form-input">
+                </div>
+                
+                <button type="submit" class="btn" id="auth-submit">Sign In</button>
+                
+                <div class="error-message" id="error-message" style="display: none;"></div>
+                <div class="success-message" id="success-message" style="display: none;"></div>
+                
+                <div class="auth-switch">
+                    <span id="auth-switch-text">Don't have an account?</span>
+                    <button type="button" id="auth-switch-btn" onclick="toggleAuthMode()">Sign Up</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Home Page -->
-    <div id="home" class="page active">
+    <div id="home" class="page">
         <div class="container">
             <div class="home-tiles">
                 <div class="tile" onclick="showPage('practice-menu')">
-                    <h2>Practice</h2>
-                    <p>Study your word cards and improve your vocabulary with interactive flashcards.</p>
+                    <h2>🎯 Practice</h2>
+                    <p>Study your word cards and improve your vocabulary with interactive flashcards designed for effective learning.</p>
                 </div>
                 <div class="tile" onclick="showPage('deck-editor-menu')">
-                    <h2>Deck Editor</h2>
-                    <p>Create, edit, and manage your word card decks. Add new cards and organize your learning materials.</p>
+                    <h2>✏️ Deck Editor</h2>
+                    <p>Create, edit, and manage your word card decks. Add new cards and organize your learning materials with ease.</p>
                 </div>
             </div>
         </div>
@@ -506,10 +1019,13 @@
         <div class="container">
             <div class="back-nav" onclick="showPage('home')">
                 <span class="back-arrow">←</span>
-                Return to Homescreen
+                Return to Home
             </div>
             <div class="deck-list" id="practice-deck-list">
-                <!-- Decks will be populated here -->
+                <div class="empty-state">
+                    <h3>Loading your decks...</h3>
+                    <p>Please wait while we fetch your flashcard decks.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -519,7 +1035,7 @@
         <div class="container">
             <div class="back-nav" onclick="showPage('practice-menu')">
                 <span class="back-arrow">←</span>
-                Return to Menu
+                Return to Practice Menu
             </div>
             <div class="card-progress" id="card-progress">Card 1 of 10</div>
             <div class="card-container">
@@ -533,9 +1049,9 @@
                 </div>
             </div>
             <div class="card-controls">
-                <button class="btn" onclick="previousCard()">Previous</button>
-                <button class="btn" onclick="flipCard()">Flip Card</button>
-                <button class="btn" onclick="nextCard()">Next</button>
+                <button class="btn" onclick="previousCard()">← Previous</button>
+                <button class="btn" onclick="flipCard()">🔄 Flip Card</button>
+                <button class="btn" onclick="nextCard()">Next →</button>
             </div>
         </div>
     </div>
@@ -545,16 +1061,19 @@
         <div class="container">
             <div class="back-nav" onclick="showPage('home')">
                 <span class="back-arrow">←</span>
-                Return to Homescreen
+                Return to Home
             </div>
-            <button class="add-card-btn" onclick="createNewDeck()">Create New Deck</button>
+            <button class="add-card-btn" onclick="createNewDeck()">➕ Create New Deck</button>
             <div class="import-export-controls">
                 <input type="file" id="csv-import" accept=".csv" style="display: none;" onchange="handleCSVImport(event)">
-                <button class="btn" onclick="document.getElementById('csv-import').click()">Import Deck from CSV</button>
-                <button class="btn" onclick="exportAllDecksToCSV()">Export All Decks</button>
+                <button class="btn" onclick="document.getElementById('csv-import').click()">📁 Import from CSV</button>
+                <button class="btn" onclick="exportAllDecksToCSV()">📤 Export All Decks</button>
             </div>
             <div class="deck-list" id="editor-deck-list">
-                <!-- Decks will be populated here -->
+                <div class="empty-state">
+                    <h3>Loading your decks...</h3>
+                    <p>Please wait while we fetch your flashcard decks.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -563,16 +1082,19 @@
     <div id="deck-editor" class="page">
         <div class="container">
             <div class="back-nav" onclick="showPage('deck-editor-menu')">
-                <span class="back-arrow">← </span>
-                Return to Menu
+                <span class="back-arrow">←</span>
+                Return to Editor Menu
             </div>
             <div class="import-export-controls">
-                <button class="btn" onclick="importFromCSV()">Import CSV</button>
-                <button class="btn" onclick="exportToCSV()">Export Current Deck</button>
+                <button class="btn" onclick="importFromCSV()">📁 Import CSV</button>
+                <button class="btn" onclick="exportToCSV()">📤 Export Current Deck</button>
             </div>
-            <button class="add-card-btn" onclick="addNewCard()">Add New Card</button>
+            <button class="add-card-btn" onclick="addNewCard()">➕ Add New Card</button>
             <div id="cards-editor">
-                <!-- Cards will be populated here -->
+                <div class="empty-state">
+                    <h3>Loading cards...</h3>
+                    <p>Please wait while we fetch the cards for this deck.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -580,56 +1102,47 @@
     <!-- Delete Confirmation Modal -->
     <div id="delete-modal" class="modal">
         <div class="modal-content">
-            <h3>Confirm Deletion</h3>
-            <p>Do you confirm deletion of this deck? This action cannot be undone.</p>
+            <h3>⚠️ Confirm Deletion</h3>
+            <p>Are you sure you want to delete this deck? This action cannot be undone and all cards will be permanently removed.</p>
             <div class="modal-actions">
                 <button class="btn" onclick="closeDeleteModal()">Cancel</button>
-                <button class="btn-danger" onclick="confirmDelete()">Yes, Delete</button>
+                <button class="btn-danger" onclick="confirmDelete()">Delete</button>
             </div>
         </div>
     </div>
 
     <script>
-        // App state
-        let currentTheme = 'light';
-        let decks = [
-            {
-                id: 1,
-                name: "Spanish Basics",
-                cards: [
-                    { front: "Hola", back: "Hello" },
-                    { front: "Gracias", back: "Thank you" },
-                    { front: "Por favor", back: "Please" },
-                    { front: "Adiós", back: "Goodbye" },
-                    { front: "Sí", back: "Yes" }
-                ],
-                dateAdded: new Date('2024-01-15'),
-                lastEdited: new Date('2024-01-20')
-            },
-            {
-                id: 2,
-                name: "French Numbers",
-                cards: [
-                    { front: "Un", back: "One" },
-                    { front: "Deux", back: "Two" },
-                    { front: "Trois", back: "Three" },
-                    { front: "Quatre", back: "Four" },
-                    { front: "Cinq", back: "Five" }
-                ],
-                dateAdded: new Date('2024-01-10'),
-                lastEdited: new Date('2024-01-18')
-            }
-        ];
+        // Supabase Configuration - YOU NEED TO REPLACE THESE WITH YOUR OWN VALUES
+        const SUPABASE_URL = https://kskgglkowsfnpahbnfmp.supabase.co;
+        const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtza2dnbGtvd3NmbnBhaGJuZm1wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4MTQ0MTcsImV4cCI6MjA3MDM5MDQxN30.4FtLfwbtFRHHZNhHyQrmo7NqAcl8TsxLcCurBPqLuxY;
         
+        // Initialize Supabase client
+        let supabase;
+        let currentUser = null;
+        let currentTheme = 'light';
         let currentDeck = null;
         let currentCardIndex = 0;
         let deckToDelete = null;
         let editingDeckId = null;
+        let isAuthMode = false; // false = sign in, true = sign up
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
-            initializeTheme();
-            updateDeckLists();
+            // Check if Supabase credentials are set
+            if (SUPABASE_URL === 'https://kskgglkowsfnpahbnfmp.supabase.co || SUPABASE_ANON_KEY === ''eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtza2dnbGtvd3NmbnBhaGJuZm1wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4MTQ0MTcsImV4cCI6MjA3MDM5MDQxN30.4FtLfwbtFRHHZNhHyQrmo7NqAcl8TsxLcCurBPqLuxY) {
+                showError('Please configure your Supabase credentials in the JavaScript code.');
+                return;
+            }
+            
+            try {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                initializeTheme();
+                checkAuthState();
+                setupAuthForm();
+            } catch (error) {
+                showError('Failed to initialize Supabase. Please check your configuration.');
+                console.error('Supabase initialization error:', error);
+            }
         });
 
         // Theme functions
@@ -656,6 +1169,241 @@
             }
         }
 
+        // Authentication functions
+        async function checkAuthState() {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                
+                if (user) {
+                    currentUser = user;
+                    showUserInterface();
+                } else {
+                    showAuthInterface();
+                }
+            } catch (error) {
+                console.error('Error checking auth state:', error);
+                showAuthInterface();
+            }
+        }
+
+        function showUserInterface() {
+            document.getElementById('auth').classList.remove('active');
+            document.getElementById('home').classList.add('active');
+            
+            const userInfo = document.getElementById('user-info');
+            const userEmail = document.getElementById('user-email');
+            
+            userInfo.style.display = 'flex';
+            userEmail.textContent = currentUser.email;
+        }
+
+        function showAuthInterface() {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.getElementById('auth').classList.add('active');
+            document.getElementById('user-info').style.display = 'none';
+        }
+
+        function setupAuthForm() {
+            const form = document.getElementById('auth-form');
+            const passwordInput = document.getElementById('password');
+            
+            form.addEventListener('submit', handleAuthSubmit);
+            passwordInput.addEventListener('input', checkPasswordStrength);
+        }
+
+        function toggleAuthMode() {
+            isAuthMode = !isAuthMode;
+            const title = document.getElementById('auth-title');
+            const submitBtn = document.getElementById('auth-submit');
+            const switchText = document.getElementById('auth-switch-text');
+            const switchBtn = document.getElementById('auth-switch-btn');
+            const confirmGroup = document.getElementById('confirm-password-group');
+            
+            clearMessages();
+            
+            if (isAuthMode) {
+                // Sign up mode
+                title.textContent = 'Sign Up';
+                submitBtn.textContent = 'Sign Up';
+                switchText.textContent = 'Already have an account?';
+                switchBtn.textContent = 'Sign In';
+                confirmGroup.style.display = 'block';
+            } else {
+                // Sign in mode
+                title.textContent = 'Sign In';
+                submitBtn.textContent = 'Sign In';
+                switchText.textContent = "Don't have an account?";
+                switchBtn.textContent = 'Sign Up';
+                confirmGroup.style.display = 'none';
+            }
+        }
+
+        async function handleAuthSubmit(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            clearMessages();
+            
+            // Input validation
+            if (!email || !password) {
+                showError('Please fill in all fields.');
+                return;
+            }
+            
+            if (!isValidEmail(email)) {
+                showError('Please enter a valid email address.');
+                return;
+            }
+            
+            if (password.length < 8) {
+                showError('Password must be at least 8 characters long.');
+                return;
+            }
+            
+            if (isAuthMode && password !== confirmPassword) {
+                showError('Passwords do not match.');
+                return;
+            }
+            
+            if (isAuthMode && !isStrongPassword(password)) {
+                showError('Password must contain uppercase, lowercase, number, and special character.');
+                return;
+            }
+            
+            setLoading(true);
+            
+            try {
+                if (isAuthMode) {
+                    // Sign up
+                    const { data, error } = await supabase.auth.signUp({
+                        email: email,
+                        password: password,
+                    });
+                    
+                    if (error) throw error;
+                    
+                    if (data.user && !data.user.email_confirmed_at) {
+                        showSuccess('Please check your email to verify your account.');
+                    } else {
+                        currentUser = data.user;
+                        showUserInterface();
+                        await loadUserDecks();
+                    }
+                } else {
+                    // Sign in
+                    const { data, error } = await supabase.auth.signInWithPassword({
+                        email: email,
+                        password: password,
+                    });
+                    
+                    if (error) throw error;
+                    
+                    currentUser = data.user;
+                    showUserInterface();
+                    await loadUserDecks();
+                }
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        async function logout() {
+            try {
+                await supabase.auth.signOut();
+                currentUser = null;
+                showAuthInterface();
+                // Clear any cached data
+                document.getElementById('practice-deck-list').innerHTML = '';
+                document.getElementById('editor-deck-list').innerHTML = '';
+            } catch (error) {
+                showError('Error signing out: ' + error.message);
+            }
+        }
+
+        // Utility functions
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function isStrongPassword(password) {
+            const hasUpper = /[A-Z]/.test(password);
+            const hasLower = /[a-z]/.test(password);
+            const hasNumber = /\d/.test(password);
+            const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+            return hasUpper && hasLower && hasNumber && hasSpecial;
+        }
+
+        function checkPasswordStrength() {
+            const password = document.getElementById('password').value;
+            const strengthDiv = document.getElementById('password-strength');
+            
+            if (!password) {
+                strengthDiv.textContent = '';
+                return;
+            }
+            
+            const score = getPasswordScore(password);
+            
+            if (score < 3) {
+                strengthDiv.textContent = 'Weak password';
+                strengthDiv.className = 'password-strength strength-weak';
+            } else if (score < 5) {
+                strengthDiv.textContent = 'Medium password';
+                strengthDiv.className = 'password-strength strength-medium';
+            } else {
+                strengthDiv.textContent = 'Strong password';
+                strengthDiv.className = 'password-strength strength-strong';
+            }
+        }
+
+        function getPasswordScore(password) {
+            let score = 0;
+            if (password.length >= 8) score++;
+            if (/[A-Z]/.test(password)) score++;
+            if (/[a-z]/.test(password)) score++;
+            if (/\d/.test(password)) score++;
+            if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score++;
+            if (password.length >= 12) score++;
+            return score;
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success-message');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function clearMessages() {
+            document.getElementById('error-message').style.display = 'none';
+            document.getElementById('success-message').style.display = 'none';
+        }
+
+        function setLoading(loading) {
+            const form = document.getElementById('auth-form');
+            if (loading) {
+                form.classList.add('loading');
+            } else {
+                form.classList.remove('loading');
+            }
+        }
+
         // Navigation functions
         function showPage(pageId) {
             document.querySelectorAll('.page').forEach(page => {
@@ -664,22 +1412,52 @@
             document.getElementById(pageId).classList.add('active');
             
             if (pageId === 'practice-menu' || pageId === 'deck-editor-menu') {
-                updateDeckLists();
+                loadUserDecks();
             }
         }
 
-        // Deck management functions
-        function updateDeckLists() {
-            updatePracticeDeckList();
-            updateEditorDeckList();
+        // Database functions
+        async function loadUserDecks() {
+            if (!currentUser) return;
+            
+            try {
+                const { data: decks, error } = await supabase
+                    .from('decks')
+                    .select(`
+                        id,
+                        name,
+                        created_at,
+                        updated_at,
+                        cards (id)
+                    `)
+                    .eq('user_id', currentUser.id)
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                updateDeckLists(decks || []);
+            } catch (error) {
+                console.error('Error loading decks:', error);
+                showError('Failed to load your decks.');
+            }
         }
 
-        function updatePracticeDeckList() {
+        function updateDeckLists(decks) {
+            updatePracticeDeckList(decks);
+            updateEditorDeckList(decks);
+        }
+
+        function updatePracticeDeckList(decks) {
             const list = document.getElementById('practice-deck-list');
             list.innerHTML = '';
             
             if (decks.length === 0) {
-                list.innerHTML = '<div class="deck-item"><div class="deck-info"><div class="deck-details"><h3>No decks available</h3><div class="deck-meta">Create a new deck or import one to get started!</div></div></div></div>';
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No decks available</h3>
+                        <p>Create a new deck or import one to get started with your learning journey!</p>
+                    </div>
+                `;
                 return;
             }
             
@@ -688,11 +1466,16 @@
                 item.className = 'deck-item';
                 item.onclick = () => startPractice(deck.id);
                 
+                const cardCount = deck.cards ? deck.cards.length : 0;
+                
                 item.innerHTML = `
                     <div class="deck-info">
                         <div class="deck-details">
-                            <h3>${deck.name}</h3>
-                            <div class="deck-meta">${deck.cards.length} cards</div>
+                            <h3>${sanitizeText(deck.name)}</h3>
+                            <div class="deck-meta">${cardCount} cards • Ready to practice</div>
+                        </div>
+                        <div class="deck-actions">
+                            <span style="font-size: 1.5rem;">🎯</span>
                         </div>
                     </div>
                 `;
@@ -701,12 +1484,17 @@
             });
         }
 
-        function updateEditorDeckList() {
+        function updateEditorDeckList(decks) {
             const list = document.getElementById('editor-deck-list');
             list.innerHTML = '';
             
             if (decks.length === 0) {
-                list.innerHTML = '<div class="deck-item"><div class="deck-info"><div class="deck-details"><h3>No decks available</h3><div class="deck-meta">Create a new deck or import one to get started!</div></div></div></div>';
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No decks available</h3>
+                        <p>Create your first deck to start building your personalized learning experience!</p>
+                    </div>
+                `;
                 return;
             }
             
@@ -714,19 +1502,23 @@
                 const item = document.createElement('div');
                 item.className = 'deck-item';
                 
+                const cardCount = deck.cards ? deck.cards.length : 0;
+                const createdAt = new Date(deck.created_at).toLocaleDateString();
+                const updatedAt = new Date(deck.updated_at).toLocaleString();
+                
                 item.innerHTML = `
                     <div class="deck-info">
                         <div class="deck-details">
-                            <h3>${deck.name}</h3>
+                            <h3>${sanitizeText(deck.name)}</h3>
                             <div class="deck-meta">
-                                ${deck.cards.length} cards<br>
-                                Added: ${deck.dateAdded.toLocaleDateString()}<br>
-                                Last edited: ${deck.lastEdited.toLocaleString()}
+                                📚 ${cardCount} cards<br>
+                                📅 Created: ${createdAt}<br>
+                                ✏️ Last edited: ${updatedAt}
                             </div>
                         </div>
                         <div class="deck-actions">
-                            <button class="btn" onclick="editDeck(${deck.id}); event.stopPropagation();">Edit</button>
-                            <button class="btn-danger" onclick="showDeleteModal(${deck.id}); event.stopPropagation();">×</button>
+                            <button class="btn" onclick="editDeck('${deck.id}'); event.stopPropagation();">Edit</button>
+                            <button class="btn-danger" onclick="showDeleteModal('${deck.id}'); event.stopPropagation();">×</button>
                         </div>
                     </div>
                 `;
@@ -736,15 +1528,40 @@
         }
 
         // Practice functions
-        function startPractice(deckId) {
-            currentDeck = decks.find(d => d.id === deckId);
-            currentCardIndex = 0;
-            showPage('practice');
-            updateCard();
+        async function startPractice(deckId) {
+            if (!currentUser) return;
+            
+            try {
+                const { data: deck, error } = await supabase
+                    .from('decks')
+                    .select(`
+                        id,
+                        name,
+                        cards (id, front, back)
+                    `)
+                    .eq('id', deckId)
+                    .eq('user_id', currentUser.id)
+                    .single();
+                
+                if (error) throw error;
+                
+                if (!deck.cards || deck.cards.length === 0) {
+                    showError('This deck has no cards to practice with.');
+                    return;
+                }
+                
+                currentDeck = deck;
+                currentCardIndex = 0;
+                showPage('practice');
+                updateCard();
+            } catch (error) {
+                console.error('Error loading deck:', error);
+                showError('Failed to load deck for practice.');
+            }
         }
 
         function updateCard() {
-            if (!currentDeck || currentDeck.cards.length === 0) return;
+            if (!currentDeck || !currentDeck.cards || currentDeck.cards.length === 0) return;
             
             const card = currentDeck.cards[currentCardIndex];
             document.getElementById('card-front').textContent = card.front;
@@ -761,208 +1578,219 @@
         }
 
         function nextCard() {
-            if (!currentDeck) return;
+            if (!currentDeck || !currentDeck.cards) return;
             currentCardIndex = (currentCardIndex + 1) % currentDeck.cards.length;
             updateCard();
         }
 
         function previousCard() {
-            if (!currentDeck) return;
+            if (!currentDeck || !currentDeck.cards) return;
             currentCardIndex = currentCardIndex === 0 ? currentDeck.cards.length - 1 : currentCardIndex - 1;
             updateCard();
         }
 
         // Editor functions
-        function createNewDeck() {
+        async function createNewDeck() {
+            if (!currentUser) return;
+            
             const name = prompt('Enter deck name:');
-            if (!name || name.trim() === '') return;
+            if (!name || name.trim() === '' || name.length > 100) {
+                if (name && name.length > 100) {
+                    showError('Deck name must be 100 characters or less.');
+                }
+                return;
+            }
             
-            const newDeck = {
-                id: Date.now(),
-                name: name.trim(),
-                cards: [],
-                dateAdded: new Date(),
-                lastEdited: new Date()
-            };
+            const sanitizedName = sanitizeText(name.trim());
             
-            decks.push(newDeck);
-            updateDeckLists();
-            editDeck(newDeck.id);
+            try {
+                const { data: deck, error } = await supabase
+                    .from('decks')
+                    .insert([
+                        {
+                            name: sanitizedName,
+                            user_id: currentUser.id
+                        }
+                    ])
+                    .select()
+                    .single();
+                
+                if (error) throw error;
+                
+                editingDeckId = deck.id;
+                showPage('deck-editor');
+                updateCardsEditor();
+                loadUserDecks(); // Refresh deck lists
+            } catch (error) {
+                console.error('Error creating deck:', error);
+                showError('Failed to create deck.');
+            }
         }
 
-        function editDeck(deckId) {
+        async function editDeck(deckId) {
+            if (!currentUser) return;
+            
             editingDeckId = deckId;
             showPage('deck-editor');
-            updateCardsEditor();
+            await updateCardsEditor();
         }
 
-        function updateCardsEditor() {
-            const deck = decks.find(d => d.id === editingDeckId);
-            if (!deck) return;
+        async function updateCardsEditor() {
+            if (!editingDeckId || !currentUser) return;
             
-            const editor = document.getElementById('cards-editor');
-            editor.innerHTML = '';
-            
-            if (deck.cards.length === 0) {
-                editor.innerHTML = '<div class="editor-card"><div style="text-align: center; color: var(--text-secondary); padding: 2rem;">No cards in this deck yet. Click "Add New Card" to get started!</div></div>';
-                return;
-            }
-            
-            deck.cards.forEach((card, index) => {
-                const cardDiv = document.createElement('div');
-                cardDiv.className = 'editor-card';
-                cardDiv.innerHTML = `
-                    <div class="editor-inputs">
-                        <input type="text" class="editor-input" value="${card.front}" 
-                               onchange="updateCardFront(${index}, this.value)" placeholder="Front">
-                        <input type="text" class="editor-input" value="${card.back}" 
-                               onchange="updateCardBack(${index}, this.value)" placeholder="Back">
-                    </div>
-                    <button class="btn-danger" onclick="deleteCard(${index})">Delete Card</button>
-                `;
-                editor.appendChild(cardDiv);
-            });
-        }
-
-        function addNewCard() {
-            const deck = decks.find(d => d.id === editingDeckId);
-            if (!deck) return;
-            
-            deck.cards.push({ front: '', back: '' });
-            deck.lastEdited = new Date();
-            updateCardsEditor();
-        }
-
-        function updateCardFront(index, value) {
-            const deck = decks.find(d => d.id === editingDeckId);
-            if (!deck) return;
-            
-            deck.cards[index].front = value;
-            deck.lastEdited = new Date();
-        }
-
-        function updateCardBack(index, value) {
-            const deck = decks.find(d => d.id === editingDeckId);
-            if (!deck) return;
-            
-            deck.cards[index].back = value;
-            deck.lastEdited = new Date();
-        }
-
-        function deleteCard(index) {
-            const deck = decks.find(d => d.id === editingDeckId);
-            if (!deck) return;
-            
-            deck.cards.splice(index, 1);
-            deck.lastEdited = new Date();
-            updateCardsEditor();
-        }
-
-        // CSV Import/Export functions
-        function handleCSVImport(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const csv = e.target.result;
-                    const lines = csv.split('\n').filter(line => line.trim());
-                    
-                    if (lines.length < 2) {
-                        alert('CSV file must have at least a header row and one data row.');
-                        return;
-                    }
-                    
-                    // Check if first line is header
-                    const header = lines[0].toLowerCase();
-                    const hasHeader = header.includes('front') || header.includes('back') || header.includes('question') || header.includes('answer');
-                    
-                    const dataLines = hasHeader ? lines.slice(1) : lines;
-                    const cards = [];
-                    
-                    dataLines.forEach((line, index) => {
-                        const parts = line.split(',').map(part => part.trim().replace(/"/g, ''));
-                        if (parts.length >= 2 && parts[0] && parts[1]) {
-                            cards.push({
-                                front: parts[0],
-                                back: parts[1]
-                            });
-                        }
-                    });
-                    
-                    if (cards.length === 0) {
-                        alert('No valid cards found in CSV file. Make sure it has two columns: front,back');
-                        return;
-                    }
-                    
-                    const deckName = prompt('Enter name for imported deck:', file.name.replace('.csv', ''));
-                    if (!deckName) return;
-                    
-                    const newDeck = {
-                        id: Date.now(),
-                        name: deckName,
-                        cards: cards,
-                        dateAdded: new Date(),
-                        lastEdited: new Date()
-                    };
-                    
-                    decks.push(newDeck);
-                    updateDeckLists();
-                    alert(`Successfully imported ${cards.length} cards!`);
-                    
-                } catch (error) {
-                    alert('Error reading CSV file. Please make sure it\'s properly formatted.');
+            try {
+                const { data: deck, error } = await supabase
+                    .from('decks')
+                    .select(`
+                        id,
+                        name,
+                        cards (id, front, back)
+                    `)
+                    .eq('id', editingDeckId)
+                    .eq('user_id', currentUser.id)
+                    .single();
+                
+                if (error) throw error;
+                
+                const editor = document.getElementById('cards-editor');
+                editor.innerHTML = '';
+                
+                if (!deck.cards || deck.cards.length === 0) {
+                    editor.innerHTML = `
+                        <div class="empty-state">
+                            <h3>No cards in this deck yet</h3>
+                            <p>Click "Add New Card" to create your first flashcard!</p>
+                        </div>
+                    `;
+                    return;
                 }
-            };
-            reader.readAsText(file);
-            
-            // Reset file input
-            event.target.value = '';
-        }
-
-        function exportToCSV() {
-            const deck = decks.find(d => d.id === editingDeckId);
-            if (!deck || deck.cards.length === 0) {
-                alert('No cards to export in current deck.');
-                return;
-            }
-            
-            let csv = 'Front,Back\n';
-            deck.cards.forEach(card => {
-                csv += `"${card.front.replace(/"/g, '""')}","${card.back.replace(/"/g, '""')}"\n`;
-            });
-            
-            downloadCSV(csv, `${deck.name}.csv`);
-        }
-
-        function exportAllDecksToCSV() {
-            if (decks.length === 0) {
-                alert('No decks to export.');
-                return;
-            }
-            
-            let csv = 'Deck,Front,Back\n';
-            decks.forEach(deck => {
-                deck.cards.forEach(card => {
-                    csv += `"${deck.name.replace(/"/g, '""')}","${card.front.replace(/"/g, '""')}","${card.back.replace(/"/g, '""')}"\n`;
+                
+                deck.cards.forEach((card, index) => {
+                    const cardDiv = document.createElement('div');
+                    cardDiv.className = 'editor-card';
+                    cardDiv.innerHTML = `
+                        <div class="editor-inputs">
+                            <input type="text" class="editor-input" value="${sanitizeText(card.front)}" 
+                                   onchange="updateCardFront('${card.id}', this.value)" placeholder="Front (Question)" maxlength="500">
+                            <input type="text" class="editor-input" value="${sanitizeText(card.back)}" 
+                                   onchange="updateCardBack('${card.id}', this.value)" placeholder="Back (Answer)" maxlength="500">
+                        </div>
+                        <button class="btn-danger" onclick="deleteCard('${card.id}')">🗑️</button>
+                    `;
+                    editor.appendChild(cardDiv);
                 });
-            });
-            
-            downloadCSV(csv, 'All_Decks.csv');
+            } catch (error) {
+                console.error('Error loading cards:', error);
+                showError('Failed to load cards.');
+            }
         }
 
-        function downloadCSV(csvContent, filename) {
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            if (link.download !== undefined) {
-                const url = URL.createObjectURL(blob);
-                link.setAttribute('href', url);
-                link.setAttribute('download', filename);
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+        async function addNewCard() {
+            if (!editingDeckId || !currentUser) return;
+            
+            try {
+                const { data: card, error } = await supabase
+                    .from('cards')
+                    .insert([
+                        {
+                            deck_id: editingDeckId,
+                            front: '',
+                            back: ''
+                        }
+                    ])
+                    .select()
+                    .single();
+                
+                if (error) throw error;
+                
+                // Update the deck's updated_at timestamp
+                await supabase
+                    .from('decks')
+                    .update({ updated_at: new Date().toISOString() })
+                    .eq('id', editingDeckId)
+                    .eq('user_id', currentUser.id);
+                
+                await updateCardsEditor();
+                loadUserDecks(); // Refresh deck lists
+            } catch (error) {
+                console.error('Error adding card:', error);
+                showError('Failed to add card.');
+            }
+        }
+
+        async function updateCardFront(cardId, value) {
+            if (!currentUser) return;
+            
+            const sanitizedValue = sanitizeText(value);
+            
+            try {
+                const { error } = await supabase
+                    .from('cards')
+                    .update({ front: sanitizedValue })
+                    .eq('id', cardId);
+                
+                if (error) throw error;
+                
+                // Update deck timestamp
+                await supabase
+                    .from('decks')
+                    .update({ updated_at: new Date().toISOString() })
+                    .eq('id', editingDeckId)
+                    .eq('user_id', currentUser.id);
+                
+            } catch (error) {
+                console.error('Error updating card front:', error);
+            }
+        }
+
+        async function updateCardBack(cardId, value) {
+            if (!currentUser) return;
+            
+            const sanitizedValue = sanitizeText(value);
+            
+            try {
+                const { error } = await supabase
+                    .from('cards')
+                    .update({ back: sanitizedValue })
+                    .eq('id', cardId);
+                
+                if (error) throw error;
+                
+                // Update deck timestamp
+                await supabase
+                    .from('decks')
+                    .update({ updated_at: new Date().toISOString() })
+                    .eq('id', editingDeckId)
+                    .eq('user_id', currentUser.id);
+                
+            } catch (error) {
+                console.error('Error updating card back:', error);
+            }
+        }
+
+        async function deleteCard(cardId) {
+            if (!currentUser) return;
+            
+            try {
+                const { error } = await supabase
+                    .from('cards')
+                    .delete()
+                    .eq('id', cardId);
+                
+                if (error) throw error;
+                
+                // Update deck timestamp
+                await supabase
+                    .from('decks')
+                    .update({ updated_at: new Date().toISOString() })
+                    .eq('id', editingDeckId)
+                    .eq('user_id', currentUser.id);
+                
+                await updateCardsEditor();
+                loadUserDecks(); // Refresh deck lists
+            } catch (error) {
+                console.error('Error deleting card:', error);
+                showError('Failed to delete card.');
             }
         }
 
@@ -977,11 +1805,301 @@
             deckToDelete = null;
         }
 
-        function confirmDelete() {
-            if (deckToDelete) {
-                decks = decks.filter(d => d.id !== deckToDelete);
-                updateDeckLists();
+        async function confirmDelete() {
+            if (!deckToDelete || !currentUser) return;
+            
+            try {
+                // Delete all cards in the deck first
+                await supabase
+                    .from('cards')
+                    .delete()
+                    .eq('deck_id', deckToDelete);
+                
+                // Then delete the deck
+                const { error } = await supabase
+                    .from('decks')
+                    .delete()
+                    .eq('id', deckToDelete)
+                    .eq('user_id', currentUser.id);
+                
+                if (error) throw error;
+                
                 closeDeleteModal();
+                loadUserDecks();
+                showSuccess('Deck deleted successfully.');
+            } catch (error) {
+                console.error('Error deleting deck:', error);
+                showError('Failed to delete deck.');
+            }
+        }
+
+        // CSV Import/Export functions
+        async function handleCSVImport(event) {
+            const file = event.target.files[0];
+            if (!file || !currentUser) return;
+            
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const csv = e.target.result;
+                    const lines = csv.split('\n').filter(line => line.trim());
+                    
+                    if (lines.length < 2) {
+                        showError('CSV file must have at least a header row and one data row.');
+                        return;
+                    }
+                    
+                    const header = lines[0].toLowerCase();
+                    const hasHeader = header.includes('front') || header.includes('back') || header.includes('question') || header.includes('answer');
+                    
+                    const dataLines = hasHeader ? lines.slice(1) : lines;
+                    const cards = [];
+                    
+                    dataLines.forEach((line, index) => {
+                        const parts = line.split(',').map(part => part.trim().replace(/"/g, ''));
+                        if (parts.length >= 2 && parts[0] && parts[1]) {
+                            cards.push({
+                                front: sanitizeText(parts[0].substring(0, 500)),
+                                back: sanitizeText(parts[1].substring(0, 500))
+                            });
+                        }
+                    });
+                    
+                    if (cards.length === 0) {
+                        showError('No valid cards found in CSV file.');
+                        return;
+                    }
+                    
+                    const deckName = prompt('Enter name for imported deck:', file.name.replace('.csv', ''));
+                    if (!deckName || deckName.trim() === '') return;
+                    
+                    const sanitizedDeckName = sanitizeText(deckName.trim().substring(0, 100));
+                    
+                    // Create deck
+                    const { data: deck, error: deckError } = await supabase
+                        .from('decks')
+                        .insert([
+                            {
+                                name: sanitizedDeckName,
+                                user_id: currentUser.id
+                            }
+                        ])
+                        .select()
+                        .single();
+                    
+                    if (deckError) throw deckError;
+                    
+                    // Add cards to deck
+                    const cardsWithDeckId = cards.map(card => ({
+                        ...card,
+                        deck_id: deck.id
+                    }));
+                    
+                    const { error: cardsError } = await supabase
+                        .from('cards')
+                        .insert(cardsWithDeckId);
+                    
+                    if (cardsError) throw cardsError;
+                    
+                    loadUserDecks();
+                    showSuccess(`Successfully imported ${cards.length} cards!`);
+                    
+                } catch (error) {
+                    console.error('Error importing CSV:', error);
+                    showError('Error importing CSV file.');
+                }
+            };
+            reader.readAsText(file);
+            
+            event.target.value = '';
+        }
+
+        async function importFromCSV() {
+            document.getElementById('csv-import').click();
+        }
+
+        async function exportToCSV() {
+            if (!editingDeckId || !currentUser) return;
+            
+            try {
+                const { data: deck, error } = await supabase
+                    .from('decks')
+                    .select(`
+                        name,
+                        cards (front, back)
+                    `)
+                    .eq('id', editingDeckId)
+                    .eq('user_id', currentUser.id)
+                    .single();
+                
+                if (error) throw error;
+                
+                if (!deck.cards || deck.cards.length === 0) {
+                    showError('No cards to export in current deck.');
+                    return;
+                }
+                
+                let csv = 'Front,Back\n';
+                deck.cards.forEach(card => {
+                    csv += `"${card.front.replace(/"/g, '""')}","${card.back.replace(/"/g, '""')}"\n`;
+                });
+                
+                downloadCSV(csv, `${deck.name}.csv`);
+            } catch (error) {
+                console.error('Error exporting deck:', error);
+                showError('Failed to export deck.');
+            }
+        }
+
+        async function exportAllDecksToCSV() {
+            if (!currentUser) return;
+            
+            try {
+                const { data: decks, error } = await supabase
+                    .from('decks')
+                    .select(`
+                        name,
+                        cards (front, back)
+                    `)
+                    .eq('user_id', currentUser.id);
+                
+                if (error) throw error;
+                
+                if (!decks || decks.length === 0) {
+                    showError('No decks to export.');
+                    return;
+                }
+                
+                let csv = 'Deck,Front,Back\n';
+                decks.forEach(deck => {
+                    if (deck.cards && deck.cards.length > 0) {
+                        deck.cards.forEach(card => {
+                            csv += `"${deck.name.replace(/"/g, '""')}","${card.front.replace(/"/g, '""')}","${card.back.replace(/"/g, '""')}"\n`;
+                        });
+                    }
+                });
+                
+                downloadCSV(csv, 'All_Decks.csv');
+            } catch (error) {
+                console.error('Error exporting all decks:', error);
+                showError('Failed to export decks.');
+            }
+        }
+
+        function downloadCSV(csvContent, filename) {
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        // Security utility function
+        function sanitizeText(text) {
+            if (typeof text !== 'string') return '';
+            return text
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#x27;')
+                .replace(/\//g, '&#x2F;');
+        }
+
+        // Listen for auth state changes
+        if (supabase) {
+            supabase.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_IN') {
+                    currentUser = session.user;
+                    showUserInterface();
+                    loadUserDecks();
+                } else if (event === 'SIGNED_OUT') {
+                    currentUser = null;
+                    showAuthInterface();
+                }
+            });
+        }
+
+        // Add keyboard shortcuts for flashcard navigation
+        document.addEventListener('keydown', function(e) {
+            const currentPage = document.querySelector('.page.active');
+            if (currentPage && currentPage.id === 'practice') {
+                switch(e.key) {
+                    case ' ': // Spacebar to flip
+                    case 'Enter':
+                        e.preventDefault();
+                        flipCard();
+                        break;
+                    case 'ArrowLeft':
+                        e.preventDefault();
+                        previousCard();
+                        break;
+                    case 'ArrowRight':
+                        e.preventDefault();
+                        nextCard();
+                        break;
+                }
+            }
+        });
+
+        // Add smooth page transitions
+        function showPage(pageId) {
+            const currentPage = document.querySelector('.page.active');
+            const targetPage = document.getElementById(pageId);
+            
+            if (currentPage) {
+                currentPage.style.opacity = '0';
+                currentPage.style.transform = 'translateY(-20px)';
+                
+                setTimeout(() => {
+                    currentPage.classList.remove('active');
+                    targetPage.classList.add('active');
+                    targetPage.style.opacity = '0';
+                    targetPage.style.transform = 'translateY(20px)';
+                    
+                    setTimeout(() => {
+                        targetPage.style.opacity = '1';
+                        targetPage.style.transform = 'translateY(0)';
+                    }, 50);
+                }, 200);
+            } else {
+                targetPage.classList.add('active');
+            }
+            
+            if (pageId === 'practice-menu' || pageId === 'deck-editor-menu') {
+                loadUserDecks();
+            }
+        }
+
+        // Add success feedback for actions
+        function showTemporarySuccess(element, message) {
+            const originalText = element.textContent;
+            element.textContent = message;
+            element.style.background = 'linear-gradient(135deg, #48bb78, #38a169)';
+            
+            setTimeout(() => {
+                element.textContent = originalText;
+                element.style.background = '';
+            }, 1500);
+        }
+
+        // Add loading states for better UX
+        function setButtonLoading(button, loading) {
+            if (loading) {
+                button.disabled = true;
+                button.dataset.originalText = button.textContent;
+                button.textContent = 'Loading...';
+                button.classList.add('loading');
+            } else {
+                button.disabled = false;
+                button.textContent = button.dataset.originalText;
+                button.classList.remove('loading');
             }
         }
     </script>
